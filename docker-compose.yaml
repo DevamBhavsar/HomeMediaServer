@@ -1,0 +1,137 @@
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    ports:
+      - "9096:9096"
+    volumes:
+      - ./config/jellyfin:/config
+      - "D:/Media:/media"
+    restart: unless-stopped
+    networks:
+      - media-network
+
+  sonarr:
+    image: linuxserver/sonarr:latest
+    container_name: sonarr
+    ports:
+      - "9001:9001"
+    volumes:
+      - ./config/sonarr:/config
+      - "D:/Media:/media"
+    restart: unless-stopped
+    networks:
+      - media-network
+
+  radarr:
+    image: linuxserver/radarr:latest
+    container_name: radarr
+    ports:
+      - "9002:9002"
+    volumes:
+      - ./config/radarr:/config
+      - "D:/Media:/media"
+    restart: unless-stopped
+    networks:
+      - media-network
+
+  bazarr:
+    image: linuxserver/bazarr:latest
+    container_name: bazarr
+    ports:
+      - "9003:9003"
+    volumes:
+      - ./config/bazarr:/config
+      - "D:/Media:/media"
+    restart: unless-stopped
+    networks:
+      - media-network
+
+  homarr:
+    image: ghcr.io/ajnart/homarr:latest
+    container_name: homarr
+    ports:
+      - "9004:9004"
+    volumes:
+      - ./config/homarr:/config
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    networks:
+      - media-network
+
+  prowlarr:
+    image: linuxserver/prowlarr:latest
+    container_name: prowlarr
+    ports:
+      - "9005:9005"
+    volumes:
+      - ./config/prowlarr:/config
+    restart: unless-stopped
+    networks:
+      - media-network
+
+  qbittorrent:
+    image: linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    ports:
+      - "9006:9006"
+      - "9007:9007"
+      - "9007:9007/udp"
+    volumes:
+      - ./config/qbittorrent:/config
+      - "D:/Media:/downloads"
+    restart: unless-stopped
+    networks:
+      - media-network
+
+  # overseerr:
+  #   image: linuxserver/overseerr:latest
+  #   container_name: overseerr
+  #   ports:
+  #     - "9008:9008"
+  #   volumes:
+  #     - ./config/overseerr:/config
+  #   restart: unless-stopped
+  #   networks:
+  #     - media-network
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --schedule "0 0 4 * * *"
+    restart: unless-stopped
+    networks:
+      - media-network
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    ports:
+      - "9010:9010"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    restart: unless-stopped
+    networks:
+      - media-network
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=Asia/calcutta
+      # - PORT=5055 #optional
+    ports:
+      - 9011:9011
+    volumes:
+      - ./config/jellyseerr:/config
+    restart: unless-stopped    
+
+networks:
+  media-network:
+    driver: bridge
+
+volumes:
+  portainer_data:
