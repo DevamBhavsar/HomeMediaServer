@@ -3,7 +3,7 @@ services:
     image: jellyfin/jellyfin:latest
     container_name: jellyfin
     ports:
-      - "9096:9096"
+      - "9096:8096"
     volumes:
       - ./config/jellyfin:/config
       - "D:/Media:/media"
@@ -15,7 +15,7 @@ services:
     image: linuxserver/sonarr:latest
     container_name: sonarr
     ports:
-      - "9001:9001"
+      - "9001:8989"
     volumes:
       - ./config/sonarr:/config
       - "D:/Media:/media"
@@ -27,7 +27,7 @@ services:
     image: linuxserver/radarr:latest
     container_name: radarr
     ports:
-      - "9002:9002"
+      - "9002:7878"
     volumes:
       - ./config/radarr:/config
       - "D:/Media:/media"
@@ -39,7 +39,7 @@ services:
     image: linuxserver/bazarr:latest
     container_name: bazarr
     ports:
-      - "9003:9003"
+      - "9003:6767"
     volumes:
       - ./config/bazarr:/config
       - "D:/Media:/media"
@@ -51,7 +51,7 @@ services:
     image: ghcr.io/ajnart/homarr:latest
     container_name: homarr
     ports:
-      - "9004:9004"
+      - "9004:7575"
     volumes:
       - ./config/homarr:/config
       - /var/run/docker.sock:/var/run/docker.sock
@@ -63,7 +63,7 @@ services:
     image: linuxserver/prowlarr:latest
     container_name: prowlarr
     ports:
-      - "9005:9005"
+      - "9005:9696"
     volumes:
       - ./config/prowlarr:/config
     restart: unless-stopped
@@ -74,9 +74,9 @@ services:
     image: linuxserver/qbittorrent:latest
     container_name: qbittorrent
     ports:
-      - "9006:9006"
-      - "9007:9007"
-      - "9007:9007/udp"
+      - "9006:8080"
+      - "9007:6881"
+      - "9007:6881/udp"
     volumes:
       - ./config/qbittorrent:/config
       - "D:/Media:/downloads"
@@ -88,7 +88,7 @@ services:
   #   image: linuxserver/overseerr:latest
   #   container_name: overseerr
   #   ports:
-  #     - "9008:9008"
+  #     - "9008:5055"
   #   volumes:
   #     - ./config/overseerr:/config
   #   restart: unless-stopped
@@ -109,7 +109,7 @@ services:
     image: portainer/portainer-ce:latest
     container_name: portainer
     ports:
-      - "9010:9010"
+      - "9010:9000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
@@ -121,10 +121,10 @@ services:
     container_name: jellyseerr
     environment:
       - LOG_LEVEL=debug
-      - TZ=Asia/calcutta
+      - TZ=Asia/Tashkent
       # - PORT=5055 #optional
     ports:
-      - 9011:9011
+      - 9011:5055
     volumes:
       - ./config/jellyseerr:/config
     restart: unless-stopped    
