@@ -50,10 +50,12 @@ services:
   homarr:
     image: ghcr.io/ajnart/homarr:latest
     container_name: homarr
+    # network_mode: "host"
     ports:
       - "9004:7575"
     volumes:
-      - ./config/homarr:/config
+      - ./homarr/configs:/app/data/configs
+      - ./homarr/icons:/app/public/icons
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
     networks:
@@ -71,15 +73,21 @@ services:
       - media-network
 
   qbittorrent:
-    image: linuxserver/qbittorrent:latest
+    image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - WEBUI_PORT=8080
+      - TORRENTING_PORT=6881
     ports:
       - "9006:8080"
-      - "9007:6881"
-      - "9007:6881/udp"
+      - "6881:6881"
+      - "6881:6881/udp"
     volumes:
       - ./config/qbittorrent:/config
-      - "D:/Media:/downloads"
+      - "D:/Media:/media"
     restart: unless-stopped
     networks:
       - media-network
@@ -126,8 +134,61 @@ services:
     ports:
       - 9011:5055
     volumes:
-      - ./config/jellyseerr:/config
-    restart: unless-stopped    
+      - ./jellyseerr/config:/app/config
+    restart: unless-stopped  
+    networks:
+      - media-network   
+  glances:
+    image: nicolargo/glances:latest
+    container_name: glances
+    restart: unless-stopped
+    ports:
+      - "61208:61208"
+    pid: host
+    # network_mode: "host"
+    environment:
+      - GLANCES_OPT=-w
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro  
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - media-network
+  dash:
+    image: plotly/dash:latest
+    container_name: dash
+    ports:
+      - "9012:8050"  # Following your port numbering scheme
+    volumes:
+      - ./dash_app:/app
+    environment:
+      - PYTHONPATH=/app
+    restart: unless-stopped
+    networks:
+      - media-network
+
+  dash-redis:
+    image: redis:alpine
+    container_name: dash_redis
+    ports:
+      - "9013:6379"
+    restart: unless-stopped
+    networks:
+      - media-network
+
+  dash-postgres:
+    image: postgres:latest
+    container_name: dash_postgres
+    environment:
+      - POSTGRES_USER=dash
+      - POSTGRES_PASSWORD=asdf
+      - POSTGRES_DB=dash_db
+    volumes:
+      - dash_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "9014:5432"
+    restart: unless-stopped
+    networks:
+      - media-network
 
 networks:
   media-network:
@@ -135,3 +196,5 @@ networks:
 
 volumes:
   portainer_data:
+  dash_postgres_data:    
+  
