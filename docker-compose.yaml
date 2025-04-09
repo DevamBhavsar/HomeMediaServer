@@ -1,200 +1,232 @@
-services:
-  jellyfin:
-    image: jellyfin/jellyfin:latest
-    container_name: jellyfin
-    ports:
-      - "9096:8096"
-    volumes:
-      - ./config/jellyfin:/config
-      - "D:/Media:/media"
-    restart: unless-stopped
-    networks:
-      - media-network
+  services:
+    
+    jellyfin:
+      image: jellyfin/jellyfin:latest
+      container_name: jellyfin
+      environment:
+        - PUID=1001
+        - PGID=1001
+      ports:
+        - "9096:8096"
+      volumes:
+        - ./config/jellyfin:/config
+        - "D:/Media:/media"
+      restart: unless-stopped
+      networks:
+        - media-network
 
-  sonarr:
-    image: linuxserver/sonarr:latest
-    container_name: sonarr
-    ports:
-      - "9001:8989"
-    volumes:
-      - ./config/sonarr:/config
-      - "D:/Media:/media"
-    restart: unless-stopped
-    networks:
-      - media-network
+    sonarr:
+      image: linuxserver/sonarr:latest
+      container_name: sonarr
+      ports:
+        - "9001:8989"
+      volumes:
+        - ./config/sonarr:/config
+        - "D:/Media:/media"
+      restart: unless-stopped
+      networks:
+        - media-network
 
-  radarr:
-    image: linuxserver/radarr:latest
-    container_name: radarr
-    ports:
-      - "9002:7878"
-    volumes:
-      - ./config/radarr:/config
-      - "D:/Media:/media"
-    restart: unless-stopped
-    networks:
-      - media-network
+    radarr:
+      image: linuxserver/radarr:latest
+      container_name: radarr
+      environment:
+        - PUID=1001
+        - PGID=1001
+      ports:
+        - "9002:7878"
+      volumes:
+        - ./config/radarr:/config
+        - "D:/Media:/media"
+      restart: unless-stopped
+      networks:
+        - media-network
 
-  bazarr:
-    image: linuxserver/bazarr:latest
-    container_name: bazarr
-    ports:
-      - "9003:6767"
-    volumes:
-      - ./config/bazarr:/config
-      - "D:/Media:/media"
-    restart: unless-stopped
-    networks:
-      - media-network
+    bazarr:
+      image: linuxserver/bazarr:latest
+      container_name: bazarr
+      environment:
+        - PUID=1001  
+        - PGID=1001 
+      ports:
+        - "9003:6767"
+      volumes:
+        - ./config/bazarr:/config
+        - "D:/Media:/media"
+      restart: unless-stopped
+      networks:
+        - media-network
 
-  homarr:
-    image: ghcr.io/ajnart/homarr:latest
-    container_name: homarr
-    # network_mode: "host"
-    ports:
-      - "9004:7575"
-    volumes:
-      - ./homarr/configs:/app/data/configs
-      - ./homarr/icons:/app/public/icons
-      - /var/run/docker.sock:/var/run/docker.sock
-    restart: unless-stopped
-    networks:
-      - media-network
+    homarr:
+      image: ghcr.io/ajnart/homarr:latest
+      container_name: homarr
+      # network_mode: "host"
+      ports:
+        - "9004:7575"
+      volumes:
+        - ./homarr/configs:/app/data/configs
+        - ./homarr/icons:/app/public/icons
+        - /var/run/docker.sock:/var/run/docker.sock
+      restart: unless-stopped
+      networks:
+        - media-network
 
-  prowlarr:
-    image: linuxserver/prowlarr:latest
-    container_name: prowlarr
-    ports:
-      - "9005:9696"
-    volumes:
-      - ./config/prowlarr:/config
-    restart: unless-stopped
-    networks:
-      - media-network
+    prowlarr:
+      image: linuxserver/prowlarr:latest
+      container_name: prowlarr
+      dns:
+        - 1.1.1.1
+        - 8.8.8.8
+        - 4.4.4.4
+      ports:
+        - "9005:9696"
+      volumes:
+        - ./config/prowlarr:/config
+      restart: unless-stopped
+      networks:
+        - media-network
+      environment:
+        - PROWLARR__PROXY_ENABLED=true
+        - PROWLARR__PROXY_TYPE=socks5
+        - PROWLARR__PROXY_HOST=tor_proxy
+        - PROWLARR__PROXY_PORT=9050
+        - NO_PROXY=qbittorrent,localhost,192.168.1.6
 
-  qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent:latest
-    container_name: qbittorrent
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC
-      - WEBUI_PORT=8080
-      - TORRENTING_PORT=6881
-    ports:
-      - "9006:8080"
-      - "6881:6881"
-      - "6881:6881/udp"
-    volumes:
-      - ./config/qbittorrent:/config
-      - "D:/Media:/media"
-    restart: unless-stopped
-    networks:
-      - media-network
+    
+    watchtower:
+      image: containrrr/watchtower
+      container_name: watchtower
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+      command: --schedule "0 0 4 * * *"
+      restart: unless-stopped
+      networks:
+        - media-network
 
-  # overseerr:
-  #   image: linuxserver/overseerr:latest
-  #   container_name: overseerr
-  #   ports:
-  #     - "9008:5055"
-  #   volumes:
-  #     - ./config/overseerr:/config
-  #   restart: unless-stopped
-  #   networks:
-  #     - media-network
+    portainer:
+      image: portainer/portainer-ce:latest
+      container_name: portainer
+      ports:
+        - "9010:9000"
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+        - portainer_data:/data
+      restart: unless-stopped
+      networks:
+        - media-network
 
-  watchtower:
-    image: containrrr/watchtower
-    container_name: watchtower
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: --schedule "0 0 4 * * *"
-    restart: unless-stopped
-    networks:
-      - media-network
+    jellyseerr:
+      image: fallenbagel/jellyseerr:latest
+      container_name: jellyseerr
+      environment:
+        - LOG_LEVEL=debug
+        - TZ=Asia/Tashkent
+      ports:
+        - 9011:5055
+      volumes:
+        - ./jellyseerr/config:/app/config
+      restart: unless-stopped  
+      networks:
+        - media-network   
 
-  portainer:
-    image: portainer/portainer-ce:latest
-    container_name: portainer
-    ports:
-      - "9010:9000"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - portainer_data:/data
-    restart: unless-stopped
-    networks:
-      - media-network
-  jellyseerr:
-    image: fallenbagel/jellyseerr:latest
-    container_name: jellyseerr
-    environment:
-      - LOG_LEVEL=debug
-      - TZ=Asia/Tashkent
-      # - PORT=5055 #optional
-    ports:
-      - 9011:5055
-    volumes:
-      - ./jellyseerr/config:/app/config
-    restart: unless-stopped  
-    networks:
-      - media-network   
-  glances:
-    image: nicolargo/glances:latest
-    container_name: glances
-    restart: unless-stopped
-    ports:
-      - "61208:61208"
-    pid: host
-    # network_mode: "host"
-    environment:
-      - GLANCES_OPT=-w
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro  
-      - /etc/localtime:/etc/localtime:ro
-    networks:
-      - media-network
-  dash:
-    image: plotly/dash:latest
-    container_name: dash
-    ports:
-      - "9012:8050"  # Following your port numbering scheme
-    volumes:
-      - ./dash_app:/app
-    environment:
-      - PYTHONPATH=/app
-    restart: unless-stopped
-    networks:
-      - media-network
+    glances:
+      image: nicolargo/glances:latest
+      container_name: glances
+      restart: unless-stopped
+      ports:
+        - "61208:61208"
+      pid: host
+      # network_mode: "host"
+      environment:
+        - GLANCES_OPT=-w
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock:ro  
+        - /etc/localtime:/etc/localtime:ro
+      networks:
+        - media-network
 
-  dash-redis:
-    image: redis:alpine
-    container_name: dash_redis
-    ports:
-      - "9013:6379"
-    restart: unless-stopped
-    networks:
-      - media-network
+    tor:
+      image: dperson/torproxy
+      container_name: tor_proxy
+      restart: unless-stopped
+      networks:
+        - media-network
+      environment:
+        - TZ=UTC
+        - USER=nobody
+      ports:
+        - "9050:9050"  
+        - "9051:9051"  
+        
+    filebrowser:
+      image: filebrowser/filebrowser
+      container_name: filebrowser
+      ports:
+        - "9012:80"
+      volumes:
+        - "D:/Media:/srv"
+        - ./config/filebrowser.db:/database/filebrowser.db
+      restart: unless-stopped
+      networks:
+        - media-network    
 
-  dash-postgres:
-    image: postgres:latest
-    container_name: dash_postgres
-    environment:
-      - POSTGRES_USER=dash
-      - POSTGRES_PASSWORD=asdf
-      - POSTGRES_DB=dash_db
-    volumes:
-      - dash_postgres_data:/var/lib/postgresql/data
-    ports:
-      - "9014:5432"
-    restart: unless-stopped
-    networks:
-      - media-network
+    lidarr:
+      image: lscr.io/linuxserver/lidarr:latest
+      container_name: lidarr
+      environment:
+        - PUID=1001
+        - PGID=1001
+        # - TZ=Etc/UTC
+      volumes:
+        - ./config/lidarr:/config
+        - "D:/Media:/media"
+      ports:
+        - 8686:8686
+      restart: unless-stopped    
+      networks:
+        - media-network 
 
-networks:
-  media-network:
-    driver: bridge
+    transmission:
+      image: lscr.io/linuxserver/transmission:latest
+      container_name: transmission
+      environment:
+        - PUID=1001
+        - PGID=1001
+        - TZ=Etc/UTC        
+        - USER=devam123 
+        - PASS=devam123 
+      volumes:
+        - ./config/transmission:/config
+        - "D:/Media:/media"
+      ports:
+        - 9091:9091
+        - 51413:51413
+        - 51413:51413/udp
+      restart: unless-stopped  
+      networks:
+        - media-network    
+    jackett:
+      image: lscr.io/linuxserver/jackett:latest
+      container_name: jackett
+      environment:
+        - PUID=1000
+        - PGID=1000
+        - TZ=Etc/UTC
+        - AUTO_UPDATE=true #optional
+        # - RUN_OPTS= #optional
+      volumes:
+        - ./config/jackett/data:/config
+        - D:/Media/blackhole:/downloads
+      ports:
+        - 9117:9117
+      restart: unless-stopped       
+      networks:
+        - media-network   
+ 
+  networks:
+    media-network:
+      driver: bridge
 
-volumes:
-  portainer_data:
-  dash_postgres_data:    
-  
+  volumes:
+    portainer_data:
+    

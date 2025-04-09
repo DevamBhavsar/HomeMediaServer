@@ -1,3 +1,5 @@
 config
 bridge
 homarr
+gluetun
+homarr_secret
